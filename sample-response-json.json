@@ -1,0 +1,21 @@
+{
+  "id": "chatcmpl-7q3iNzV9CC0LnVm6piway66VsgfqV",
+  "object": "chat.completion",
+  "created": 1692641691,
+  "model": "gpt-3.5-turbo-0613",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "<!DOCTYPE html>\n<html>\n<head>\n    <title>Follow-Up Email Template</title>\n</head>\n<body>\n    <div>\n        <h1>Follow-Up Email - Exclusive Offer!</h1>\n        <p>Dear [Lead's Name],</p>\n        <p>I hope this email finds you well. I wanted to follow up regarding our previous email where we offered a limited-time, exclusive discount of 5% on our Air Conditioners.</p>\n        <p>It seems that you may have missed the opportunity to take advantage of this amazing offer! Don't worry, we understand that sometimes things can get busy or emails can slip through the cracks.</p>\n        <p>However, I wanted to make sure that you don't miss out on this fantastic deal. Our Air Conditioners are known for their energy efficiency, durability, and superior cooling performance. With the 5% discount, it's an offer that you simply cannot resist!</p>\n        <p>Here's a quick recap of the offer details:</p>\n        <ul>\n            <li>5% discount on all Air Conditioners from our collection</li>\n            <li>Valid for a limited time only</li>\n            <li>High-quality products with excellent customer reviews</li>\n        </ul>\n        <p>I encourage you to browse through our wide range of Air Conditioners on our website and find the perfect fit for your needs. To redeem the 5% discount, simply use the coupon code AC5OFF at the checkout.</p>\n        <p>Remember, the hot summer days are just around the corner, and you deserve to stay cool and comfortable!</p>\n        <p>If you have any questions or need further assistance, feel free to reach out to our friendly customer support team. We're here to help!</p>\n        <p>Thank you for considering our offer, and we look forward to serving you soon.</p>\n        <p>Warm regards,</p>\n        <p>Your Name</p>\n        <p>Your Position</p>\n    </div>\n</body>\n</html>"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 49,
+    "completion_tokens": 435,
+    "total_tokens": 484
+  }
+}

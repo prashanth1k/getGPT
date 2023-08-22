@@ -1,0 +1,308 @@
+<!-- 
+    getGPT - Call your favourite GPT API by hosting this page anywhere (almost).
+    Written in 2023 by Prashanth Krishnamurthy @ techformist.com
+    
+    To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
+    You should have received a copy of the CC0 Public Domain Dedication along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>. 
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=800, initial-scale=1.0" />
+    <title>getGPT</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/chota@latest" />
+    <!-- Alpine Plugins -->
+    <script src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+      defer
+    ></script>
+
+    <script src="
+    https://cdn.jsdelivr.net/npm/json-format-highlight@1.0.4/dist/json-format-highlight.min.js"></script>
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+      integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+
+    <style>
+      label {
+        font-size: 60%;
+        font-weight: bold;
+      }
+      textarea {
+        font-size: 90%;
+        font-family: "Courier New", monospace;
+        height: 25em;
+      }
+      pre {
+        position: relative;
+        background-color: #f0f0f0;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+
+      code {
+        display: block;
+        font-size: 90%;
+        font-family: "Courier New", monospace;
+      }
+
+      /* Copy code button styles */
+      .copy-code-button {
+        position: absolute;
+        top: 0.2em;
+        right: 0.2em;
+        padding: 0.2em 1em;
+        font-size: 14px;
+        background-color: darkgray;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .out-options {
+        font-size: x-small;
+      }
+
+      footer {
+        padding-left: 0.5em;
+        font-size: small;
+        color: grey;
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        height: 60px;
+      }
+    </style>
+  </head>
+  <body>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+      integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+      defer
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"
+      integrity="sha512-QXFMVAusM85vUYDaNgcYeU3rzSlc+bTV4JvkfJhjxSHlQEo+ig53BtnGkvFTiNJh8D+wv6uWAQ2vJaVmxe8d3w=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+      defer
+    ></script>
+
+    <script>
+      document.addEventListener("alpine:init", () => {
+        Alpine.store("gres", {});
+        Alpine.store("gjson", {});
+        Alpine.store("ghtml", {});
+        Alpine.store("gprompt", "");
+        Alpine.store("settings", {
+          apiKey: Alpine.$persist("").as("apiKey"),
+          apiUrl: Alpine.$persist(
+            "https://api.openai.com/v1/chat/completions"
+          ).as("apiUrl"),
+        });
+      });
+
+      const getApi = async () => {
+        try {
+          console.log("Initiating API..", Alpine.store("settings")?.apiUrl);
+          console.log("Sending prompt..", Alpine.store("gprompt"));
+
+          if (
+            !Alpine.store("settings")?.apiUrl ||
+            !Alpine.store("settings")?.apiKey ||
+            !Alpine.store("gprompt")
+          )
+            throw "Provide correct values against URL, API Key and Prompt message";
+
+          const res = await fetch(Alpine.store("settings")?.apiUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: "Bearer " + Alpine.store("settings")?.apiKey,
+            },
+            body: JSON.stringify({
+              model: "gpt-3.5-turbo",
+              messages: [
+                {
+                  content: Alpine.store("gprompt"),
+                  role: "user",
+                },
+              ],
+            }),
+          })
+            .then((response) => {
+              console.log("Received response.. Processing..");
+              Alpine.store("gres", response);
+              if (response.ok) {
+                console.log("Processing JSON..");
+                response.json().then((json) => {
+                  Alpine.store("gjson", json);
+                  Alpine.store(
+                    "ghtml",
+                    json?.choices.length > 0
+                      ? json.choices[0].message?.content
+                      : "<html>Nothing to see here </html>"
+                  );
+                });
+              } else {
+                console.log("Error..");
+                Alpine.store("gjson", {
+                  result: "error",
+                  message: "See raw response to debug",
+                });
+              }
+            })
+            .finally(() => console.log(".. done"));
+        } catch (e) {
+          console.error(e);
+          alert(
+            "Error processing your request. See console log for more info."
+          );
+        }
+      };
+    </script>
+
+    <nav class="nav nav-main">
+      <div class="nav-center">
+        <a href="#home"><b>getGPT!</b></a>
+      </div>
+    </nav>
+    <main
+      class="container text-center"
+      x-data="{  copyConfirm: false, gOutOption: 'json'}"
+    >
+      <div class="row">
+        <div class="col-12">
+          <div
+            class="tabs is-center"
+            style="margin-bottom: 2em"
+            x-data="{gNavOption:'home'}"
+          >
+            <a
+              href="#home"
+              :class="gNavOption == 'home' ? 'active' : ''"
+              @click="gNavOption='home'"
+              >home</a
+            >
+            <a
+              href="#settings"
+              :class="gNavOption == 'settings' ? 'active' : ''"
+              @click="gNavOption='settings'"
+              >settings</a
+            >
+            <a
+              href="#help"
+              :class="gNavOption == 'help' ? 'active' : ''"
+              @click="gNavOption='help'"
+              >help</a
+            >
+          </div>
+        </div>
+        <div class="col-12 text-light">
+          ℹ️ Prompt your favourite GPT APIs and get smarter 😜
+        </div>
+
+        <div class="col-12 is-right">
+          <button type="button" @click="getApi">Send</button>
+        </div>
+        <div class="col-12 is-right">
+          <nav class="tabs out-options">
+            <a
+              :class="gOutOption == 'raw' ? 'active' : ''"
+              @click="gOutOption='raw'"
+              href="#"
+              >raw</a
+            >
+
+            <a
+              :class="gOutOption == 'json' ? 'active' : ''"
+              @click="gOutOption='json'"
+              href="#"
+              >json</a
+            >
+
+            <a
+              :class="gOutOption == 'html' ? 'active' : ''"
+              @click="gOutOption='html'"
+              href="#"
+              >html</a
+            >
+          </nav>
+        </div>
+        <div class="col-6">
+          <label for="inprompt" class="text-grey is-left">Prompt</label>
+          <textarea
+            name="inprompt"
+            rows="50"
+            x-model="$store.gprompt"
+          ></textarea>
+        </div>
+        <div class="col-6" style="height: 100%; text-align: left">
+          <label for="outjson" class="text-grey is-left">Output</label>
+
+          <pre
+            x-show="gOutOption=='raw'"
+          > <code x-text="JSON.stringify($store.gres)" ></code>
+          <button class="copy-code-button" 
+            @click="navigator.clipboard.writeText(JSON.stringify($store.gres));copyConfirm=true;setTimeout(() => copyConfirm=false,2000)" 
+            x-data="{ lblCopy: 'Copy' }" x-text="copyConfirm ? lblCopy + ' ✔': lblCopy">
+          </button>
+        </pre>
+
+          <pre
+            x-show="gOutOption=='json'"
+          ><code x-html="jsonFormatHighlight($store.gjson)" ></code>
+            <button class="copy-code-button" 
+              @click="navigator.clipboard.writeText(JSON.stringify($store.gjson));copyConfirm=true;setTimeout(() => copyConfirm=false,2000)" 
+              x-data="{ lblCopy: 'Copy' }" x-text="copyConfirm ? lblCopy + ' ✔': lblCopy">
+            </button>
+          </pre>
+
+          <pre
+            x-show="gOutOption=='html'"
+          > <code class="language-markup" x-html="$store.ghtml" ></code>
+            <button class="copy-code-button" 
+              @click="navigator.clipboard.writeText($store.ghtml);copyConfirm=true;setTimeout(() => copyConfirm=false,2000)" 
+              x-data="{ lblCopy: 'Copy' }" x-text="copyConfirm ? lblCopy + ' ✔': lblCopy">
+            </button>
+          </pre>
+        </div>
+        <div class="col-12 is-center bg-light" id="settings">
+          <h6>Settings</h6>
+        </div>
+        <div class="col-6 bg-light">
+          <input
+            type="text"
+            name="apiUrl"
+            id=""
+            x-model="$store.settings.apiUrl"
+          />
+        </div>
+        <div class="col-6 bg-light">
+          <input
+            type="text"
+            name="apiKey"
+            id=""
+            x-model="$store.settings.apiKey"
+          />
+        </div>
+        <div class="col-12 bg-light" id="help">
+          <h6>Help</h6>
+        </div>
+      </div>
+    </main>
+    <footer>Just another experimental project. (c) CC0. techformist.com</footer>
+  </body>
+</html>
